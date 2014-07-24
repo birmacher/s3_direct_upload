@@ -62,6 +62,7 @@ $.fn.S3Uploader = (options) ->
         if data.context
           progress = parseInt(data.loaded / data.total * 100, 10)
           data.context.find('.bar').css('width', progress + '%')
+          $uploadForm.trigger("s3_upload_progress", [data.context[0].id, data.loaded / data.total])
 
       done: (e, data) ->
         content = build_content_object $uploadForm, data.files[0], data.result
@@ -92,17 +93,17 @@ $.fn.S3Uploader = (options) ->
               return event.result
 
         data.context.remove() if data.context && settings.remove_completed_progress_bar # remove progress bar
-        $uploadForm.trigger("s3_upload_complete", [content])
+        $uploadForm.trigger("s3_upload_complete", [data.context[0].id, content])
 
         current_files.splice($.inArray(data, current_files), 1) # remove that element from the array
-        $uploadForm.trigger("s3_uploads_complete", [content]) unless current_files.length
+        $uploadForm.trigger("s3_uploads_complete", [content]) if current_files.length == 0
 
       fail: (e, data) ->
         content = build_content_object $uploadForm, data.files[0], data.result
         content.error_thrown = data.errorThrown
 
         data.context.remove() if data.context && settings.remove_failed_progress_bar # remove progress bar
-        $uploadForm.trigger("s3_upload_failed", [content])
+        $uploadForm.trigger("s3_upload_failed", [data, context[0].id, content])
 
       formData: (form) ->
         data = form.serializeArray()
